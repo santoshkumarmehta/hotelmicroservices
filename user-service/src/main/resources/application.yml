@@ -1,0 +1,83 @@
+
+server:
+  port: 8081
+  error:
+    whitelabel:
+      enabled: false
+  
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/microservices
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+#  config:
+#    import: configserver:http://localhost:8085
+
+  freemarker:
+    template-loader-path: classpath:/templates/
+    prefer-file-system-access: false
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true  
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+ 
+
+#actuator setting     
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
+
+#Resilience4j config
+resilience4j:
+  circuitbreaker:
+    instances:
+      ratingHotelsBreaker:
+       register-health-indicator: true
+       event-consumer-buffer-size: 10
+       sliding-window-size: 10
+       minimum-number-of-calls: 5
+       failure-rate-threshold: 50
+       wait-duration-in-open-state: 6s
+       automatic-transition-from-open-to-half-open-enabled: true
+       sliding-window-type: COUNT_BASED
+
+  retry:
+    instances:
+     ratingHotelsRetry:
+       max-attempts: 3
+       wait-duration: 5s
+  ratelimiter:
+    instances:
+      ratingHotelRateLimiter:
+        timeoutDuration: 3s
+        limitRefreshPeriod: 5s
+        limitForPeriod: 2
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.ms.controller			
